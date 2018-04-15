@@ -1,0 +1,417 @@
+<KW, from>
+<ID, __future__>
+<KW, import>
+<ID, print_function>
+<ID, choices>
+<ASSIGN_OP, =>
+<LS>
+<RS>
+<KW, for>
+<ID, x>
+<MEM_OP, in>
+<ID, range>
+<LB>
+<NUM, 0>
+<COMMA>
+<NUM, 9>
+<RB>
+<COL>
+<INDENT, 1>
+<ID, choices>
+<DOT>
+<ID, append>
+<LB>
+<ID, str>
+<LB>
+<ID, x>
+<ARTH_OP, +>
+<NUM, 1>
+<RB>
+<RB>
+<ID, playerOneTurn>
+<ASSIGN_OP, =>
+<BOOL, True>
+<ID, winner>
+<ASSIGN_OP, =>
+<BOOL, False>
+<KW, def>
+<ID, printBoard>
+<LB>
+<RB>
+<COL>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR, 
+ ----->
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 0>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 1>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 2>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR,  ----->
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 3>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 4>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 5>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR,  ----->
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 6>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 7>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<ARTH_OP, +>
+<ID, choices>
+<LS>
+<NUM, 8>
+<RS>
+<ARTH_OP, +>
+<STR, |>
+<RB>
+<INDENT, 1>
+<ID, print>
+<LB>
+<STR,  -----
+>
+<RB>
+<KW, while>
+<LOGICAL_OP, not>
+<ID, winner>
+<COL>
+<INDENT, 1>
+<ID, printBoard>
+<LB>
+<RB>
+<INDENT, 1>
+<KW, if>
+<ID, playerOneTurn>
+<COL>
+<INDENT, 2>
+<ID, print>
+<LB>
+<STR, Player 1:>
+<RB>
+<INDENT, 1>
+<KW, else>
+<COL>
+<INDENT, 2>
+<ID, print>
+<LB>
+<STR, Player 2:>
+<RB>
+<INDENT, 1>
+<KW, try>
+<COL>
+<INDENT, 2>
+<ID, choice>
+<ASSIGN_OP, =>
+<ID, int>
+<LB>
+<ID, input>
+<LB>
+<STR, >> >
+<RB>
+<RB>
+<INDENT, 1>
+<KW, except>
+<COL>
+<INDENT, 2>
+<ID, print>
+<LB>
+<STR, please enter a valid field>
+<RB>
+<INDENT, 2>
+<KW, continue>
+<INDENT, 1>
+<KW, if>
+<ID, choices>
+<LS>
+<ID, choice>
+<ARTH_OP, ->
+<NUM, 1>
+<RS>
+<COMP_OP, ==>
+<STR, X>
+<LOGICAL_OP, or>
+<ID, choices>
+<LS>
+<ID, choice>
+<ARTH_OP, ->
+<NUM, 1>
+<RS>
+<COMP_OP, ==>
+<STR, O>
+<COL>
+<INDENT, 2>
+<ID, print>
+<LB>
+<STR, illegal move, plase try again>
+<RB>
+<INDENT, 2>
+<KW, continue>
+<INDENT, 1>
+<KW, if>
+<ID, playerOneTurn>
+<COL>
+<INDENT, 2>
+<ID, choices>
+<LS>
+<ID, choice>
+<ARTH_OP, ->
+<NUM, 1>
+<RS>
+<ASSIGN_OP, =>
+<STR, X>
+<INDENT, 1>
+<KW, else>
+<COL>
+<INDENT, 2>
+<ID, choices>
+<LS>
+<ID, choice>
+<ARTH_OP, ->
+<NUM, 1>
+<RS>
+<ASSIGN_OP, =>
+<STR, O>
+<INDENT, 1>
+<ID, playerOneTurn>
+<ASSIGN_OP, =>
+<LOGICAL_OP, not>
+<ID, playerOneTurn>
+<INDENT, 1>
+<KW, for>
+<ID, x>
+<MEM_OP, in>
+<ID, range>
+<LB>
+<NUM, 0>
+<COMMA>
+<NUM, 3>
+<RB>
+<COL>
+<INDENT, 2>
+<ID, y>
+<ASSIGN_OP, =>
+<ID, x>
+<ARTH_OP, *>
+<NUM, 3>
+<INDENT, 2>
+<KW, if>
+<LB>
+<ID, choices>
+<LS>
+<ID, y>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<LB>
+<ID, y>
+<ARTH_OP, +>
+<NUM, 1>
+<RB>
+<RS>
+<LOGICAL_OP, and>
+<ID, choices>
+<LS>
+<ID, y>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<LB>
+<ID, y>
+<ARTH_OP, +>
+<NUM, 2>
+<RB>
+<RS>
+<RB>
+<COL>
+<INDENT, 3>
+<ID, winner>
+<ASSIGN_OP, =>
+<BOOL, True>
+<INDENT, 3>
+<ID, printBoard>
+<LB>
+<RB>
+<INDENT, 2>
+<KW, if>
+<LB>
+<ID, choices>
+<LS>
+<ID, x>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<LB>
+<ID, x>
+<ARTH_OP, +>
+<NUM, 3>
+<RB>
+<RS>
+<LOGICAL_OP, and>
+<ID, choices>
+<LS>
+<ID, x>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<LB>
+<ID, x>
+<ARTH_OP, +>
+<NUM, 6>
+<RB>
+<RS>
+<RB>
+<COL>
+<INDENT, 3>
+<ID, winner>
+<ASSIGN_OP, =>
+<BOOL, True>
+<INDENT, 3>
+<ID, printBoard>
+<LB>
+<RB>
+<INDENT, 1>
+<KW, if>
+<LB>
+<LB>
+<ID, choices>
+<LS>
+<NUM, 0>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<NUM, 4>
+<RS>
+<LOGICAL_OP, and>
+<ID, choices>
+<LS>
+<NUM, 0>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<NUM, 8>
+<RS>
+<RB>
+<LOGICAL_OP, or>
+<INDENT, 1>
+<LB>
+<ID, choices>
+<LS>
+<NUM, 2>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<NUM, 4>
+<RS>
+<LOGICAL_OP, and>
+<ID, choices>
+<LS>
+<NUM, 4>
+<RS>
+<COMP_OP, ==>
+<ID, choices>
+<LS>
+<NUM, 6>
+<RS>
+<RB>
+<RB>
+<COL>
+<INDENT, 2>
+<ID, winner>
+<ASSIGN_OP, =>
+<BOOL, True>
+<INDENT, 2>
+<ID, printBoard>
+<LB>
+<RB>
+<ID, print>
+<LB>
+<STR, Player >
+<ARTH_OP, +>
+<ID, str>
+<LB>
+<ID, int>
+<LB>
+<ID, playerOneTurn>
+<ARTH_OP, +>
+<NUM, 1>
+<RB>
+<RB>
+<ARTH_OP, +>
+<STR,  wins!
+>
+<RB>

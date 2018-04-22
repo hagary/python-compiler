@@ -1,3 +1,4 @@
+import java.util.*;
 import java_cup.runtime.Symbol;
 %%
 %class Lexer
@@ -11,7 +12,7 @@ import java_cup.runtime.Symbol;
 
 %{
 	StringBuffer string = new StringBuffer();
-	int indentCount = 0;
+  Stack<Integer> indents = new Stack<Integer>();
 %}
 
 KEYWORD=class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
@@ -27,7 +28,7 @@ MEM_OP=in|(not\ in)
 ID_OP=(is\ not)|is
 LOGICAL_OP=and|or|not
 BOOL_VAL=True|False
-INDENT=^(\ \ \ \ )+ | ^(\t)+
+INDENT=^(\ )*
 WHITE_SPACE=([\ ])+
 NOSLASHSTR=[^\n\r\"\\\']+
 QUOTE = [\"\']
@@ -45,9 +46,18 @@ NEWLINE=\n
   return new Symbol(sym.NEWLINE, null);
 }
 <YYINITIAL> {INDENT} {
-	int currCount = yytext().length()/4;
-	indentCount = currCount;
- 	return new Symbol(sym.INDENT, currCount+"");
+  int currCount = yytext().length();
+  if(currCount > 0 && (indents.isEmpty() || currCount > indents.peek())){
+    indents.push(currCount);
+    return new Symbol(sym.INDENT);
+  }
+  if(!indents.isEmpty() && currCount < indents.peek()){
+    if(currCount != 0 && !indents.contains(currCount))
+      return new Symbol(sym.error);
+    indents.pop();
+    yybegin(YYINITIAL);
+    return new Symbol(sym.DEDENT);
+  }
 }
 
 <YYINITIAL> {KEYWORD} {

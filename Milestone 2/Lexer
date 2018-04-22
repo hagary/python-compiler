@@ -1,0 +1,189 @@
+import java_cup.runtime.Symbol;
+%%
+%class Lexer
+%implements java_cup.runtime.Scanner
+%function next_token
+%type java_cup.runtime.Symbol
+
+%eofval{
+  return new Symbol(sym.EOF, null);
+%eofval}
+
+%{
+	StringBuffer string = new StringBuffer();
+	int indentCount = 0;
+%}
+
+KEYWORD=class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
+ALPHA=[A-Za-z_]
+DIGIT=[0-9]
+ALPHA_NUMERIC={ALPHA}|{DIGIT}
+NUMBER={DIGIT}+("."{DIGIT}+)?
+ASSIGN_OP="="|"+="|"-="|"*="|"/="|"**="|"//="|"%="|"&="|"|="|"^="|"<<="|">>="
+ARTH_OP="**"|"*"|"+"|"-"|"//"|"/"|"%"
+COMP_OP="=="|"<="|"<"|">="|">"|"<>"|"!="
+BITWISE_OP="&"|"|"|"^"|"~"|">>"|"<<"
+MEM_OP=in|(not\ in)
+ID_OP=(is\ not)|is
+LOGICAL_OP=and|or|not
+BOOL_VAL=True|False
+INDENT=^(\ \ \ \ )+ | ^(\t)+
+WHITE_SPACE=([\ ])+
+NOSLASHSTR=[^\n\r\"\\\']+
+QUOTE = [\"\']
+TRIPLE_COMMENT = \"\"\"[^(\"\"\")]*\"\"\"| \'\'\'[^(\'\'\')]*\'\'\'
+ID={ALPHA}({ALPHA_NUMERIC})*
+COMMENTS={TRIPLE_COMMENT}\n|#[^\n]* \n
+NEWLINE=\n
+%state STRING
+%%
+
+<YYINITIAL> {COMMENTS} {
+
+}
+<YYINITIAL> {NEWLINE} {
+  return new Symbol(sym.NEWLINE, null);
+}
+<YYINITIAL> {INDENT} {
+	int currCount = yytext().length()/4;
+	indentCount = currCount;
+ 	return new Symbol(sym.INDENT, currCount+"");
+}
+
+<YYINITIAL> {KEYWORD} {
+  int lex = sym.KW;
+  switch (yytext()) {
+    case "if": lex = sym.IF; break;
+    case "else": lex = sym.ELSE; break;
+    case "elif": lex = sym.ELIF; break;
+    case "for": lex = sym.FOR; break;
+    case "while": lex = sym.WHILE; break;
+    case "from": lex = sym.FROM; break;
+    case "import": lex = sym.IMPORT; break;
+    case "def": lex = sym.DEF; break;
+    case "try": lex = sym.TRY; break;
+    case "except": lex = sym.EXCEPT; break;
+    case "continue": lex = sym.CONTINUE; break;
+    case "break": lex = sym.BREAK; break;
+  }
+  return new Symbol(lex, null);
+}
+
+<YYINITIAL> {BOOL_VAL} {
+  return new Symbol(sym.BOOL,yytext());
+}
+
+<YYINITIAL> {ARTH_OP} {
+  return new Symbol(sym.ARTH_OP,yytext());
+}
+
+<YYINITIAL> {COMP_OP} {
+  return new Symbol(sym.COMP_OP, yytext());
+}
+
+<YYINITIAL> {LOGICAL_OP} {
+  return new Symbol(sym.LOGICAL_OP, yytext());
+}
+
+<YYINITIAL> {ASSIGN_OP} {
+  return new Symbol(sym.ASSIGN_OP, yytext());
+}
+
+<YYINITIAL> {BITWISE_OP} {
+  return new Symbol(sym.BITWISE_OP, yytext());
+}
+
+<YYINITIAL> {MEM_OP} {
+  return new Symbol(sym.MEM_OP, yytext());
+}
+
+<YYINITIAL> {ID_OP} {
+  return new Symbol(sym.ID_OP, yytext());
+}
+
+<YYINITIAL> {ID} {
+  return new Symbol(sym.ID, yytext());
+}
+
+<YYINITIAL> {NUMBER} {
+  return new Symbol(sym.NUM, yytext());
+}
+
+<YYINITIAL> "." {
+  return new Symbol(sym.DOT, null);
+}
+
+<YYINITIAL> "{" {
+  return new Symbol(sym.LC, null);
+}
+
+<YYINITIAL> "}" {
+  return new Symbol(sym.RC, null);
+}
+
+<YYINITIAL> "(" {
+  return new Symbol(sym.LB, null);
+}
+
+<YYINITIAL> ")" {
+  return new Symbol(sym.RB, null);
+}
+
+<YYINITIAL> ";" {
+  return new Symbol(sym.SMCOL, null);
+}
+
+<YYINITIAL> ":" {
+  return new Symbol(sym.COL, null);
+}
+
+<YYINITIAL> "@" {
+  return new Symbol(sym.AT, null);
+}
+
+<YYINITIAL> "," {
+  return new Symbol(sym.COMMA, null);
+}
+<YYINITIAL> "[" {
+  return new Symbol(sym.LS, null);
+}
+<YYINITIAL> "]" {
+  return new Symbol(sym.RS, null);
+}
+
+
+<YYINITIAL> {QUOTE} {
+  string.setLength(0); yybegin(STRING);
+}
+<YYINITIAL> {WHITE_SPACE} { }
+<YYINITIAL> . {
+  return new Symbol(sym.error, yytext());
+}
+
+<STRING> {QUOTE} {
+	yybegin(YYINITIAL);
+	return new Symbol(sym.STR, string.toString());
+}
+
+<STRING> {NOSLASHSTR} {
+	string.append(yytext());
+}
+<STRING> \\t {
+	string.append('\t');
+}
+<STRING> \\n {
+	string.append('\n');
+}
+<STRING> \\r {
+	string.append('\r');
+}
+<STRING> \\\" {
+	string.append('\"');
+}
+
+<STRING> \\\' {
+	string.append('\'');
+}
+<STRING> \\ {
+	string.append('\\');
+}

@@ -4,11 +4,11 @@ import java.util.*;
 
 
 /* Terminals (tokens returned by the scanner). */
-terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP,LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
+terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, statement;
+nonterminal	Boolean		program, statement, arith_expr;
 
 /* The grammar */
 
@@ -17,7 +17,15 @@ program ::= program:p statement:e
 			{:RESULT = p && e;:}
 			| {:RESULT = true;:};
 
-statement ::= ID ASSIGN_OP NUM
-			  {:RESULT = true;:}
+statement ::= ID ASSIGN_OP arith_expr:e
+			  {:RESULT = e;:}
 			  | error
 			  {:RESULT = false;:};
+				
+/* Arithmetic Expression */
+arith_expr ::= arith_expr:e ARTH_OP NUM
+							{:RESULT = e;:}
+							| ARTH_OP:op NUM
+							{:RESULT = ((String) op).equals("+") || ((String) op).equals("-");:}
+							| NUM
+							{:RESULT = true;:};

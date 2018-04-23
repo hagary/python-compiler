@@ -15,7 +15,7 @@ import java_cup.runtime.Symbol;
   Stack<Integer> indents = new Stack<Integer>();
 %}
 
-KEYWORD=class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
+KEYWORD=in|class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
 ALPHA=[A-Za-z_]
 DIGIT=[0-9]
 ALPHA_NUMERIC={ALPHA}|{DIGIT}
@@ -75,6 +75,7 @@ NEWLINE=\n
     case "except": lex = sym.EXCEPT; break;
     case "continue": lex = sym.CONTINUE; break;
     case "break": lex = sym.BREAK; break;
+    case "in"": lex = sym.IN; break;
   }
   return new Symbol(lex, null);
 }

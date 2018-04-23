@@ -1,7 +1,7 @@
-Lexer.java
-parser.java
-sym.java
-in.in
+**/Lexer.java
+**/parser.java
+**/sym.java
+**/in.in
 
 # Compiled class file
 *.class

@@ -4,11 +4,11 @@ import java.util.*;
 
 
 /* Terminals (tokens returned by the scanner). */
-terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
+terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IN, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, statement, arith_expr, import_stmt, import_name, import_from, dotted_name;
+nonterminal	Boolean		program, suite, stmts, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, arg, func_call;
 
 /* The grammar */
 
@@ -17,13 +17,21 @@ program ::= program:p statement:e
 			{:RESULT = p && e;:}
 			| {:RESULT = true;:};
 */
-program ::= import_stmt:n {:RESULT = n;:}
+program ::= for_stmt:s
+				{:RESULT = s;:}
 			| {:RESULT = true;:};
 
-statement ::= ID ASSIGN_OP arith_expr:e
-			  {:RESULT = e;:}
-			  | error
-			  {:RESULT = false;:};
+suite ::= INDENT stmts:s DEDENT
+					{:RESULT = s;:};
+
+stmts ::= stmts:s1 assgn_stmt:s2
+					{:RESULT = s1 && s2;:}
+					| {:RESULT = true;:};
+
+assgn_stmt ::= ID ASSIGN_OP arith_expr:e
+			  			{:RESULT = e;:}
+			  			| error
+			  			{:RESULT = false;:};
 
 /* Arithmetic Expression */
 arith_expr ::= arith_expr:e ARTH_OP NUM
@@ -32,6 +40,22 @@ arith_expr ::= arith_expr:e ARTH_OP NUM
 							{:RESULT = ((String) op).equals("+") || ((String) op).equals("-");:}
 							| NUM
 							{:RESULT = true;:};
+
+arg ::= ID
+				{:RESULT = true;:}
+				| arith_expr
+				{:RESULT = true;:}
+				| func_call:f
+				{:RESULT = f;:};
+
+func_call ::= ID LB arg:v1 COMMA arg:v2 RB
+							{:RESULT = v1 && v2;:};
+
+bool_expr ::= ID COMP_OP NUM {:RESULT = true;:};
+
+/* For Loop */
+for_stmt ::= FOR ID IN arg:v COL suite:s
+						{:RESULT = v && s;:};
 
 /* Import Statements */
 import_stmt ::= import_name:s

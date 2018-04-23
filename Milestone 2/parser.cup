@@ -8,7 +8,7 @@ terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGIC
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args;
+nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test;
 
 /* Grammar */
 
@@ -33,6 +33,8 @@ stmt ::= assgn_stmt:s
 				| import_stmt:s
 				{:RESULT = s;:}
 				| func_def:s
+				{:RESULT = s;:}
+				| if_stmt:s
 				{:RESULT = s;:};
 
 assgn_stmt ::= ID ASSIGN_OP arith_expr:e
@@ -54,6 +56,22 @@ val ::= ID
 				{:RESULT = true;:}
 				| func_call:f
 				{:RESULT = f;:};
+
+/* If else statement */
+single_if_stmt ::= IF test:t COL suite:s
+						{:RESULT = t && s;:};
+if_stmt ::= single_if_stmt:s
+						{:RESULT = s;:}
+						| single_if_stmt:s1 ELSE COL suite:s2
+						{:RESULT = s1 && s2;:};
+
+test ::= LB bool_expr:e RB
+					{:RESULT = e;:}
+				| bool_expr:e
+				{:RESULT = e;:};
+/* TODO incomplete bool_expr for testing*/
+bool_expr ::= ID COMP_OP NUM {:RESULT = true;:};
+
 
 /* Function Definition */
 func_def ::= DEF ID params:p COL suite:s
@@ -88,7 +106,3 @@ dotted_name ::= dotted_name:n DOT ID
 							{:RESULT = n;:}
 							| ID
 							{:RESULT = true;:};
-
-
-/* TODO incomplete bool_expr for testing */
-bool_expr ::= ID COMP_OP NUM {:RESULT = true;:};

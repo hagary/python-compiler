@@ -8,24 +8,42 @@ terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGIC
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, statement, arith_expr;
+nonterminal	Boolean		program, statement, arith_expr, import_stmt, import_name, import_from, dotted_name;
 
 /* The grammar */
 
-
+/*
 program ::= program:p statement:e
 			{:RESULT = p && e;:}
+			| {:RESULT = true;:};
+*/
+program ::= import_stmt:n {:RESULT = n;:}
 			| {:RESULT = true;:};
 
 statement ::= ID ASSIGN_OP arith_expr:e
 			  {:RESULT = e;:}
 			  | error
 			  {:RESULT = false;:};
-				
+
 /* Arithmetic Expression */
 arith_expr ::= arith_expr:e ARTH_OP NUM
 							{:RESULT = e;:}
 							| ARTH_OP:op NUM
 							{:RESULT = ((String) op).equals("+") || ((String) op).equals("-");:}
 							| NUM
+							{:RESULT = true;:};
+
+/* Import Statements */
+import_stmt ::= import_name:s
+								{:RESULT = s;:}
+								| import_from:s
+								{:RESULT = s;:};
+
+import_name ::=	IMPORT dotted_name:n
+								{:RESULT = n;:};
+import_from ::=	FROM dotted_name:n1 IMPORT dotted_name:n2
+								{:RESULT = n1 && n2;:};
+dotted_name ::= dotted_name:n DOT ID
+							{:RESULT = n;:}
+							| ID
 							{:RESULT = true;:};

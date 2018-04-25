@@ -11,5 +11,11 @@ y = x * 3
 choices[choice - 1] = 'X'
 choices[choice - 1] = 'O'
 
-playerOneTurn = not playerOneTurn
 choice = int(input(">> "))
+choices.append(str(x + 1))
+print( '\n -----')
+printBoard()
+print( "Player 1:")
+print( '|' + choices[0] + '|' + choices[1] + '|' + choices[2] + '|')
+print ("Player " + str(int(playerOneTurn + 1)) + " wins!\n")
+range (0, 6, True, list[0])

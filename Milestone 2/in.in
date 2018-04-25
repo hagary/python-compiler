@@ -1,2 +1,15 @@
-s = 5
-a = 3
+choices = []
+
+playerOneTurn = True
+winner = False
+
+x = choices[choice - 1]
+y = choices [choice-1]
+
+y = x * 3
+
+choices[choice - 1] = 'X'
+choices[choice - 1] = 'O'
+
+playerOneTurn = not playerOneTurn
+choice = int(input(">> "))

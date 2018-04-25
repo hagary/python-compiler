@@ -4,26 +4,43 @@ import java.util.*;
 
 
 /* Terminals (tokens returned by the scanner). */
-terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
+terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IN, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, statement, arith_expr, import_stmt, import_name, import_from, dotted_name;
+nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test;
 
-/* The grammar */
+/* Grammar */
 
 /*
 program ::= program:p statement:e
 			{:RESULT = p && e;:}
 			| {:RESULT = true;:};
 */
-program ::= import_stmt:n {:RESULT = n;:}
-			| {:RESULT = true;:};
+program ::= stmts:s
+				{:RESULT = s;:};
 
-statement ::= ID ASSIGN_OP arith_expr:e
-			  {:RESULT = e;:}
-			  | error
-			  {:RESULT = false;:};
+suite ::= INDENT stmts:s DEDENT
+					{:RESULT = s;:};
+
+stmts ::= stmts:s1 stmt:s2
+					{:RESULT = s1 && s2;:}
+					| {:RESULT = true;:};
+stmt ::= assgn_stmt:s
+				{:RESULT = s;:}
+				| for_stmt:s
+				{:RESULT = s;:}
+				| import_stmt:s
+				{:RESULT = s;:}
+				| func_def:s
+				{:RESULT = s;:}
+				| if_stmt:s
+				{:RESULT = s;:};
+
+assgn_stmt ::= ID ASSIGN_OP arith_expr:e
+			  			{:RESULT = e;:}
+			  			| error
+			  			{:RESULT = false;:};
 
 /* Arithmetic Expression */
 arith_expr ::= arith_expr:e ARTH_OP NUM
@@ -32,6 +49,48 @@ arith_expr ::= arith_expr:e ARTH_OP NUM
 							{:RESULT = ((String) op).equals("+") || ((String) op).equals("-");:}
 							| NUM
 							{:RESULT = true;:};
+
+val ::= ID
+				{:RESULT = true;:}
+				| arith_expr
+				{:RESULT = true;:}
+				| func_call:f
+				{:RESULT = f;:};
+
+/* If else statement */
+single_if_stmt ::= IF test:t COL suite:s
+						{:RESULT = t && s;:};
+if_stmt ::= single_if_stmt:s
+						{:RESULT = s;:}
+						| single_if_stmt:s1 ELSE COL suite:s2
+						{:RESULT = s1 && s2;:};
+
+test ::= LB bool_expr:e RB
+					{:RESULT = e;:}
+				| bool_expr:e
+				{:RESULT = e;:};
+/* TODO incomplete bool_expr for testing*/
+bool_expr ::= ID COMP_OP NUM {:RESULT = true;:};
+
+
+/* Function Definition */
+func_def ::= DEF ID params:p COL suite:s
+						{:RESULT = p && s;:};
+params ::= LB args:a RB
+					{:RESULT = a;:}
+					| LB RB
+					{:RESULT = true;:};
+args ::= args:a COMMA ID
+				{:RESULT = a;:}
+				| ID
+				{:RESULT = true;:};
+/* TODO incomplete func_call for testing */
+func_call ::= ID LB val:v1 COMMA val:v2 RB
+							{:RESULT = v1 && v2;:};
+
+/* For Loop */
+for_stmt ::= FOR ID IN val:v COL suite:s
+						{:RESULT = v && s;:};
 
 /* Import Statements */
 import_stmt ::= import_name:s

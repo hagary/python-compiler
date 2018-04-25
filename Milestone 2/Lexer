@@ -75,7 +75,7 @@ NEWLINE=\n
     case "except": lex = sym.EXCEPT; break;
     case "continue": lex = sym.CONTINUE; break;
     case "break": lex = sym.BREAK; break;
-    case "in"": lex = sym.IN; break;
+    case "in": lex = sym.IN; break;
   }
   return new Symbol(lex, null);
 }

@@ -53,7 +53,7 @@ while not winner :
             winner = True
             printBoard()
 
-    if((choices[0] == choices[4] and choices[0] == choices[8]) or 
+    if((choices[0] == choices[4] and choices[0] == choices[8]) or
        (choices[2] == choices[4] and choices[4] == choices[6])) :
         winner = True
         printBoard()

@@ -1,0 +1,184 @@
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+
+
+/* Terminals (tokens returned by the scanner). */
+terminal STR, LS, RS, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, ID, NUM, DOT, LB, RB, COL, COMMA, IN, IF, ELSE, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE;
+
+
+/* Non-terminals */
+nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test, list_item, stmt_lhs, string, while_stmt, try_stmt, list;
+
+/* Precedences */
+precedence left LOGICAL_OP, LS, LB, RB;
+precedence left ARTH_OP;
+
+
+/* Grammar */
+program ::= stmts:s
+				{:RESULT = s;:};
+
+suite ::= INDENT stmts:s DEDENT
+					{:RESULT = s;:};
+
+stmts ::= stmts:s1 stmt:s2
+					{:RESULT = s1 && s2;:}
+					| {:RESULT = true;:};
+
+stmt ::= assgn_stmt:s
+				{:RESULT = s;:}
+				| for_stmt:s
+				{:RESULT = s;:}
+				| while_stmt:s
+				{:RESULT = s;:}
+				| import_stmt:s
+				{:RESULT = s;:}
+				| func_def:s
+				{:RESULT = s;:}
+				| if_stmt:s
+				{:RESULT = s;:}
+				| try_stmt:s
+				{:RESULT = s;:}
+				| func_call:s
+				{:RESULT = s;:}
+				| CONTINUE
+				{:RESULT = true;:};
+
+
+
+/* Assignment Statement */
+assgn_stmt ::= stmt_lhs ASSIGN_OP val:v
+			  			{:RESULT = v;:}
+			  			| error
+			  			{:RESULT = false;:};
+/* Assignment Left Hand Side */
+stmt_lhs ::= ID
+					 {:RESULT = true;:}
+					 | list_item
+					 {:RESULT = true;:}
+					 | error
+					 {:RESULT = false;:};
+
+
+/* Arithmetic Expression */
+arith_expr ::= arith_expr:e1 ARTH_OP arith_expr:e2
+							{:RESULT = e1 && e2;:}
+							| ARTH_OP:op val:v
+							{:RESULT = v && ((String) op).equals("+") || ((String) op).equals("-");:}
+							| ID ARTH_OP NUM
+							{:RESULT = true;:}
+							| NUM ARTH_OP ID
+							{:RESULT = true;:}
+							| ID ARTH_OP ID
+							{:RESULT = true;:}
+							| NUM
+							{:RESULT = true;:};
+
+/* Literals values */
+val ::= ID
+				{:RESULT = true;:}
+				| string:s
+				{:RESULT = s;:}
+				| arith_expr:e
+				{:RESULT = e;:}
+				| bool_expr:b
+				{:RESULT = b;:}
+				| list_item:l
+				{:RESULT = l;:}
+				| list:l
+				{:RESULT = l;:}
+				| func_call:f
+				{:RESULT = f;:}
+				| LB val:v RB
+				{:RESULT = v;:}
+				| error
+				{:RESULT = false;:};
+
+/* If else statement */
+single_if_stmt ::= IF test:t COL suite:s
+						{:RESULT = t && s;:};
+if_stmt ::= single_if_stmt:s
+						{:RESULT = s;:}
+						| single_if_stmt:s1 ELSE COL suite:s2
+						{:RESULT = s1 && s2;:};
+
+test ::= bool_expr:e
+				{:RESULT = e;:}
+				| ID
+				{:RESULT = true;:};
+
+/* Function Definition */
+func_def ::= DEF ID params:p COL suite:s
+						{:RESULT = p && s;:};
+params ::= LB args:a RB
+					{:RESULT = a;:}
+					| LB RB
+					{:RESULT = true;:};
+args ::= args:a COMMA val:v
+				{:RESULT = a && v;:}
+				| val:v
+				{:RESULT = v;:};
+
+/* Function Call */
+func_call ::= ID params:p
+							{:RESULT = p;:}
+							| ID DOT ID params:p
+							{:RESULT = p;:};
+
+/* For Loop */
+for_stmt ::= FOR ID IN val:v COL suite:s
+						{:RESULT = v && s;:};
+
+/* Import Statements */
+import_stmt ::= import_name:s
+								{:RESULT = s;:}
+								| import_from:s
+								{:RESULT = s;:};
+
+import_name ::=	IMPORT dotted_name:n
+								{:RESULT = n;:};
+import_from ::=	FROM dotted_name:n1 IMPORT dotted_name:n2
+								{:RESULT = n1 && n2;:};
+dotted_name ::= dotted_name:n DOT ID
+							{:RESULT = n;:}
+							| ID
+							{:RESULT = true;:};
+
+/* List Item */
+list_item ::= ID LS val:e RS
+							{:RESULT = e;:};
+
+/* List */
+list ::= LS args:a RS	{:RESULT = a;:}
+				| LS RS	{:RESULT = true;:};
+
+/* String Concatenation */
+string ::= string:s ARTH_OP:op STR
+				 {:RESULT = s && ((String) op).equals("+");:}
+				 | string:s ARTH_OP:op list_item:l
+				 {:RESULT = s && l && ((String) op).equals("+");:}
+				 | string:s ARTH_OP:op func_call:f
+				 {:RESULT = s && f && ((String) op).equals("+");:}
+				 | STR
+				 {:RESULT = true;:};
+
+/* Boolean Expression */
+bool_expr ::= bool_expr:b1 LOGICAL_OP bool_expr:b2
+							{:RESULT = b1 && b2;:}
+							| LB bool_expr:b RB
+						  {:RESULT = b;:}
+							| LOGICAL_OP:op val:v
+							{:RESULT = ((String) op).equals("not") && v;:}
+							| stmt_lhs:a COMP_OP val:v
+							{:RESULT = a && v;:}
+							| BOOL
+							{:RESULT = true;:};
+
+/* While Loop */
+while_stmt ::= WHILE test:t COL suite:s
+						   {:RESULT = s && t;:};
+
+/* Try-Except Statement */
+try_stmt ::= TRY COL suite:s1 EXCEPT COL suite:s2
+						 {:RESULT = s1 && s2;:};

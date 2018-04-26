@@ -1,3 +1,7 @@
+**/Lexer.java
+**/parser.java
+**/sym.java
+
 # Compiled class file
 *.class
 

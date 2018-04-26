@@ -1,0 +1,205 @@
+import java.util.*;
+import java_cup.runtime.Symbol;
+%%
+%class Lexer
+%implements java_cup.runtime.Scanner
+%function next_token
+%type java_cup.runtime.Symbol
+
+%{
+  static StringBuffer string = new StringBuffer();
+	static Stack<Integer> indentCount = new Stack<Integer>();
+	static int count = 0;
+	static boolean isIndent = false;
+	int index = 0;
+	int newIndex = 0;
+%}
+
+
+%init{
+    indentCount.push(0);
+%init}
+
+%eofval{
+      if (!indentCount.isEmpty() && indentCount.peek() != 0) {
+          int pop = indentCount.pop();
+          yybegin(YYINITIAL);
+          return new Symbol(sym.DEDENT, pop + "");
+      }
+      return null;
+%eofval}
+
+KEYWORD=in|class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
+ALPHA=[A-Za-z_]
+DIGIT=[0-9]
+ALPHA_NUMERIC={ALPHA}|{DIGIT}
+NUMBER={DIGIT}+("."{DIGIT}+)?
+ASSIGN_OP="="|"+="|"-="|"*="|"/="|"**="|"//="|"%="|"&="|"|="|"^="|"<<="|">>="
+ARTH_OP="**"|"*"|"+"|"-"|"//"|"/"|"%"
+COMP_OP="=="|"<="|"<"|">="|">"|"<>"|"!="
+LOGICAL_OP=and|or|not
+BOOL_VAL=True|False
+NOSLASHSTR=[^\n\r\"\\\']+
+QUOTE = [\"\']
+TRIPLE_COMMENT = \"\"\"[^(\"\"\")]*\"\"\"| \'\'\'[^(\'\'\')]*\'\'\'
+ID={ALPHA}({ALPHA_NUMERIC})*
+NEWLINE=\n
+WHITESPACE=([\ \t\b\r\f])
+INDENTATION=^{WHITESPACE}
+COMMENTS={TRIPLE_COMMENT}\n|#[^\n]* \n
+%state STRING
+%%
+
+<YYINITIAL> {COMMENTS} {
+
+}
+<YYINITIAL> ^[\ \t\r\f\b]*\n {
+int tmp = index++;
+index = yylength() + newIndex;
+newIndex = index - tmp;
+index = yylength() + newIndex + 1;
+}
+<YYINITIAL> ^[\ \t]*\n {
+index = yylength();
+}
+<YYINITIAL> {NEWLINE} {
+isIndent = false;
+newIndex = yylength();
+return new Symbol(sym.NEWLINE, "");
+}
+<YYINITIAL> ^[\ \t]* {
+count = yytext().length();
+ if (count > indentCount.peek()) {
+     indentCount.push(count);
+     int tmp  = count;
+     count = 0;
+     return new Symbol(sym.INDENT, tmp+"");
+  }
+  else if (count < indentCount.peek()) {
+      if (indentCount.contains(count)) {
+              int pop = indentCount.pop();
+              if ((yylength() + index) <  yy_buffer_index)
+              yy_buffer_index -= yylength() + index;
+              yybegin(YYINITIAL);
+             return new Symbol(sym.DEDENT,pop + "");
+             }
+
+      else {
+          return new Symbol(sym.error, "Unexpected indentation");
+      }
+  }
+
+
+}
+<YYINITIAL> {WHITESPACE} {  }
+
+<YYINITIAL> {KEYWORD} {
+  int lex = sym.IF;
+  switch (yytext()) {
+    case "if": lex = sym.IF; break;
+    case "else": lex = sym.ELSE; break;
+    case "for": lex = sym.FOR; break;
+    case "while": lex = sym.WHILE; break;
+    case "from": lex = sym.FROM; break;
+    case "import": lex = sym.IMPORT; break;
+    case "def": lex = sym.DEF; break;
+    case "try": lex = sym.TRY; break;
+    case "except": lex = sym.EXCEPT; break;
+    case "continue": lex = sym.CONTINUE; break;
+    case "in": lex = sym.IN; break;
+  }
+  return new Symbol(lex, null);
+}
+
+<YYINITIAL> {BOOL_VAL} {
+  return new Symbol(sym.BOOL,yytext());
+}
+
+<YYINITIAL> {ARTH_OP} {
+  return new Symbol(sym.ARTH_OP,yytext());
+}
+
+<YYINITIAL> {COMP_OP} {
+  return new Symbol(sym.COMP_OP, yytext());
+}
+
+<YYINITIAL> {LOGICAL_OP} {
+  return new Symbol(sym.LOGICAL_OP, yytext());
+}
+
+<YYINITIAL> {ASSIGN_OP} {
+  return new Symbol(sym.ASSIGN_OP, yytext());
+}
+
+
+<YYINITIAL> {ID} {
+  return new Symbol(sym.ID, yytext());
+}
+
+<YYINITIAL> {NUMBER} {
+  return new Symbol(sym.NUM, yytext());
+}
+
+<YYINITIAL> "." {
+  return new Symbol(sym.DOT, null);
+}
+
+<YYINITIAL> "(" {
+  return new Symbol(sym.LB, null);
+}
+
+<YYINITIAL> ")" {
+  return new Symbol(sym.RB, null);
+}
+
+
+<YYINITIAL> ":" {
+  return new Symbol(sym.COL, null);
+}
+
+
+<YYINITIAL> "," {
+  return new Symbol(sym.COMMA, null);
+}
+<YYINITIAL> "[" {
+  return new Symbol(sym.LS, null);
+}
+<YYINITIAL> "]" {
+  return new Symbol(sym.RS, null);
+}
+
+
+<YYINITIAL> {QUOTE} {
+  string.setLength(0); yybegin(STRING);
+}
+<YYINITIAL> . {
+  return new Symbol(sym.error, yytext());
+}
+
+<STRING> {QUOTE} {
+	yybegin(YYINITIAL);
+	return new Symbol(sym.STR, string.toString());
+}
+
+<STRING> {NOSLASHSTR} {
+	string.append(yytext());
+}
+<STRING> \\t {
+	string.append('\t');
+}
+<STRING> \\n {
+	string.append('\n');
+}
+<STRING> \\r {
+	string.append('\r');
+}
+<STRING> \\\" {
+	string.append('\"');
+}
+
+<STRING> \\\' {
+	string.append('\'');
+}
+<STRING> \\ {
+	string.append('\\');
+}

@@ -85,7 +85,11 @@ NEWLINE=\n
 }
 
 <YYINITIAL> {ARTH_OP} {
-  return new Symbol(sym.ARTH_OP,yytext());
+  int lex = sym.ARTH_OP;
+  String s = yytext();
+  if(s.equals("+") || s.equals("-"))
+    lex = sym.PLUS_MINUS;
+  return new Symbol(lex,s);
 }
 
 <YYINITIAL> {COMP_OP} {

@@ -6,14 +6,28 @@ import java_cup.runtime.Symbol;
 %function next_token
 %type java_cup.runtime.Symbol
 
-%eofval{
-  return new Symbol(sym.EOF, null);
-%eofval}
-
 %{
-	StringBuffer string = new StringBuffer();
-  Stack<Integer> indents = new Stack<Integer>();
+  static StringBuffer string = new StringBuffer();
+	static Stack<Integer> indentCount = new Stack<Integer>();
+	static int count = 0;
+	static boolean isIndent = false;
+	int index = 0;
+	int newIndex = 0;
 %}
+
+
+%init{
+    indentCount.push(0);
+%init}
+
+%eofval{
+      if (!indentCount.isEmpty() && indentCount.peek() != 0) {
+          int pop = indentCount.pop();
+          yybegin(YYINITIAL);
+          return new Symbol(sym.DEDENT, pop + "");
+      }
+      return null;
+%eofval}
 
 KEYWORD=in|class|finally|return|None|continue|for|lambda|try|def|from|nonlocal|while|del|global|with|as|elif|if|yield|assert|else|import|pass|break|except|raise|exec
 ALPHA=[A-Za-z_]
@@ -28,37 +42,59 @@ MEM_OP=in|(not\ in)
 ID_OP=(is\ not)|is
 LOGICAL_OP=and|or|not
 BOOL_VAL=True|False
-INDENT=^(\ )*
-WHITE_SPACE=([\ ])+
 NOSLASHSTR=[^\n\r\"\\\']+
 QUOTE = [\"\']
 TRIPLE_COMMENT = \"\"\"[^(\"\"\")]*\"\"\"| \'\'\'[^(\'\'\')]*\'\'\'
 ID={ALPHA}({ALPHA_NUMERIC})*
-COMMENTS={TRIPLE_COMMENT}\n|#[^\n]* \n
 NEWLINE=\n
+WHITESPACE=([\ \t\b\r\f])
+INDENTATION=^{WHITESPACE}
+COMMENTS={TRIPLE_COMMENT}\n|#[^\n]* \n
 %state STRING
 %%
 
 <YYINITIAL> {COMMENTS} {
 
 }
+<YYINITIAL> ^[\ \t\r\f\b]*\n {
+int tmp = index++;
+index = yylength() + newIndex;
+newIndex = index - tmp;
+index = yylength() + newIndex + 1;
+}
+<YYINITIAL> ^[\ \t]*\n {
+index = yylength();
+}
 <YYINITIAL> {NEWLINE} {
-  return new Symbol(sym.NEWLINE, null);
+isIndent = false;
+newIndex = yylength();
+return new Symbol(sym.NEWLINE, "");
 }
-<YYINITIAL> {INDENT} {
-  int currCount = yytext().length();
-  if(currCount > 0 && (indents.isEmpty() || currCount > indents.peek())){
-    indents.push(currCount);
-    return new Symbol(sym.INDENT);
+<YYINITIAL> ^[\ \t]* {
+count = yytext().length();
+ if (count > indentCount.peek()) {
+     indentCount.push(count);
+     int tmp  = count;
+     count = 0;
+     return new Symbol(sym.INDENT, tmp+"");
   }
-  if(!indents.isEmpty() && currCount < indents.peek()){
-    if(currCount != 0 && !indents.contains(currCount))
-      return new Symbol(sym.error);
-    indents.pop();
-    yybegin(YYINITIAL);
-    return new Symbol(sym.DEDENT);
+  else if (count < indentCount.peek()) {
+      if (indentCount.contains(count)) {
+              int pop = indentCount.pop();
+              if ((yylength() + index) <  yy_buffer_index)
+              yy_buffer_index -= yylength() + index;
+              yybegin(YYINITIAL);
+             return new Symbol(sym.DEDENT,pop + "");
+             }
+
+      else {
+          return new Symbol(sym.error, "Unexpected indentation");
+      }
   }
+
+
 }
+<YYINITIAL> {WHITESPACE} {  }
 
 <YYINITIAL> {KEYWORD} {
   int lex = sym.KW;
@@ -166,7 +202,6 @@ NEWLINE=\n
 <YYINITIAL> {QUOTE} {
   string.setLength(0); yybegin(STRING);
 }
-<YYINITIAL> {WHITE_SPACE} { }
 <YYINITIAL> . {
   return new Symbol(sym.error, yytext());
 }

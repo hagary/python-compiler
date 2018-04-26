@@ -37,9 +37,6 @@ NUMBER={DIGIT}+("."{DIGIT}+)?
 ASSIGN_OP="="|"+="|"-="|"*="|"/="|"**="|"//="|"%="|"&="|"|="|"^="|"<<="|">>="
 ARTH_OP="**"|"*"|"+"|"-"|"//"|"/"|"%"
 COMP_OP="=="|"<="|"<"|">="|">"|"<>"|"!="
-BITWISE_OP="&"|"|"|"^"|"~"|">>"|"<<"
-MEM_OP=in|(not\ in)
-ID_OP=(is\ not)|is
 LOGICAL_OP=and|or|not
 BOOL_VAL=True|False
 NOSLASHSTR=[^\n\r\"\\\']+
@@ -97,11 +94,10 @@ count = yytext().length();
 <YYINITIAL> {WHITESPACE} {  }
 
 <YYINITIAL> {KEYWORD} {
-  int lex = sym.KW;
+  int lex = sym.IF;
   switch (yytext()) {
     case "if": lex = sym.IF; break;
     case "else": lex = sym.ELSE; break;
-    case "elif": lex = sym.ELIF; break;
     case "for": lex = sym.FOR; break;
     case "while": lex = sym.WHILE; break;
     case "from": lex = sym.FROM; break;
@@ -110,7 +106,6 @@ count = yytext().length();
     case "try": lex = sym.TRY; break;
     case "except": lex = sym.EXCEPT; break;
     case "continue": lex = sym.CONTINUE; break;
-    case "break": lex = sym.BREAK; break;
     case "in": lex = sym.IN; break;
   }
   return new Symbol(lex, null);
@@ -136,17 +131,6 @@ count = yytext().length();
   return new Symbol(sym.ASSIGN_OP, yytext());
 }
 
-<YYINITIAL> {BITWISE_OP} {
-  return new Symbol(sym.BITWISE_OP, yytext());
-}
-
-<YYINITIAL> {MEM_OP} {
-  return new Symbol(sym.MEM_OP, yytext());
-}
-
-<YYINITIAL> {ID_OP} {
-  return new Symbol(sym.ID_OP, yytext());
-}
 
 <YYINITIAL> {ID} {
   return new Symbol(sym.ID, yytext());
@@ -160,14 +144,6 @@ count = yytext().length();
   return new Symbol(sym.DOT, null);
 }
 
-<YYINITIAL> "{" {
-  return new Symbol(sym.LC, null);
-}
-
-<YYINITIAL> "}" {
-  return new Symbol(sym.RC, null);
-}
-
 <YYINITIAL> "(" {
   return new Symbol(sym.LB, null);
 }
@@ -176,17 +152,11 @@ count = yytext().length();
   return new Symbol(sym.RB, null);
 }
 
-<YYINITIAL> ";" {
-  return new Symbol(sym.SMCOL, null);
-}
 
 <YYINITIAL> ":" {
   return new Symbol(sym.COL, null);
 }
 
-<YYINITIAL> "@" {
-  return new Symbol(sym.AT, null);
-}
 
 <YYINITIAL> "," {
   return new Symbol(sym.COMMA, null);

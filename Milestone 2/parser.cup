@@ -4,21 +4,18 @@ import java.util.*;
 
 
 /* Terminals (tokens returned by the scanner). */
-terminal KW, STR, LS, RS, NEWLINE, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, BITWISE_OP, MEM_OP, ID_OP, ID, NUM, DOT, LC, RC, LB, RB, SMCOL, COL, AT, COMMA, IN, IF, ELSE, ELIF, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, BREAK;
+terminal STR, LS, RS, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, ID, NUM, DOT, LB, RB, COL, COMMA, IN, IF, ELSE, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE;
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test, list_item, stmt_lhs, string, while_stmt, try_stmt;
+nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, arith_expr, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test, list_item, stmt_lhs, string, while_stmt, try_stmt, list;
 
 /* Precedences */
-precedence left ARTH_OP, LOGICAL_OP, LS, LB, RB;
-/* Grammar */
+precedence left LOGICAL_OP, LS, LB, RB;
+precedence left ARTH_OP;
 
-/*
-program ::= program:p statement:e
-			{:RESULT = p && e;:}
-			| {:RESULT = true;:};
-*/
+
+/* Grammar */
 program ::= stmts:s
 				{:RESULT = s;:};
 
@@ -48,17 +45,21 @@ stmt ::= assgn_stmt:s
 				| CONTINUE
 				{:RESULT = true;:};
 
-stmt_lhs ::= ID
-  					 {:RESULT = true;:}
-						 | list_item
-						 {:RESULT = true;:}
-						 | error
-						 {:RESULT = false;:};
 
+
+/* Assignment Statement */
 assgn_stmt ::= stmt_lhs ASSIGN_OP val:v
 			  			{:RESULT = v;:}
 			  			| error
 			  			{:RESULT = false;:};
+/* Assignment Left Hand Side */
+stmt_lhs ::= ID
+					 {:RESULT = true;:}
+					 | list_item
+					 {:RESULT = true;:}
+					 | error
+					 {:RESULT = false;:};
+
 
 /* Arithmetic Expression */
 arith_expr ::= arith_expr:e1 ARTH_OP arith_expr:e2
@@ -67,9 +68,14 @@ arith_expr ::= arith_expr:e1 ARTH_OP arith_expr:e2
 							{:RESULT = v && ((String) op).equals("+") || ((String) op).equals("-");:}
 							| ID ARTH_OP NUM
 							{:RESULT = true;:}
+							| NUM ARTH_OP ID
+							{:RESULT = true;:}
+							| ID ARTH_OP ID
+							{:RESULT = true;:}
 							| NUM
 							{:RESULT = true;:};
 
+/* Literals values */
 val ::= ID
 				{:RESULT = true;:}
 				| string:s
@@ -79,6 +85,8 @@ val ::= ID
 				| bool_expr:b
 				{:RESULT = b;:}
 				| list_item:l
+				{:RESULT = l;:}
+				| list:l
 				{:RESULT = l;:}
 				| func_call:f
 				{:RESULT = f;:}
@@ -112,6 +120,7 @@ args ::= args:a COMMA val:v
 				| val:v
 				{:RESULT = v;:};
 
+/* Function Call */
 func_call ::= ID params:p
 							{:RESULT = p;:}
 							| ID DOT ID params:p
@@ -138,9 +147,11 @@ dotted_name ::= dotted_name:n DOT ID
 
 /* List Item */
 list_item ::= ID LS val:e RS
-							{:RESULT = e;:}
-							| LS RS
-							{:RESULT = true;:};
+							{:RESULT = e;:};
+
+/* List */
+list ::= LS args:a RS	{:RESULT = a;:}
+				| LS RS	{:RESULT = true;:};
 
 /* String Concatenation */
 string ::= string:s ARTH_OP:op STR
@@ -168,6 +179,6 @@ bool_expr ::= bool_expr:b1 LOGICAL_OP bool_expr:b2
 while_stmt ::= WHILE test:t COL suite:s
 						   {:RESULT = s && t;:};
 
-/* Try-Except statement */
+/* Try-Except Statement */
 try_stmt ::= TRY COL suite:s1 EXCEPT COL suite:s2
 						 {:RESULT = s1 && s2;:};

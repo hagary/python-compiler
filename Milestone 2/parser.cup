@@ -47,7 +47,6 @@ assgn_stmt ::= ID ASSIGN_OP arith_expr:e
 			  			{:RESULT = false;:};
 
 /* Arithmetic Expression */
-/* TODO change num to any var */
 
 arith_expr ::= arith_expr:e PLUS_MINUS term:t
 							{:RESULT = e && t;:}

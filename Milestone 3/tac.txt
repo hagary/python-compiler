@@ -1,0 +1,14 @@
+L9:	t3 = 0
+L8:	x = t3
+L3:	t1 = 0
+L2:	y = t1
+L0:	t0 = x * y
+L1:	z = t0
+L4:	t1 = t1 + 1
+L5:	y = t1
+L6:	t2 = t1 < 4
+L7:	if t2 goto L2
+L10:	t3 = t3 + 1
+L11:	x = t3
+L12:	t4 = t3 < 3
+L13:	if t4 goto L8

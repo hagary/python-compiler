@@ -1,0 +1,92 @@
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+
+action code {:
+	static LinkedList<String> tac = new LinkedList<String>();
+	static int varCount = 0;
+	static int lineCount = 0;
+	static String nextVar(){
+		return "t" + varCount++;
+	}
+	static String nextLine(){
+		return "L" + lineCount++;
+	}
+	static void printTAC(){
+		try {
+			PrintWriter pw;
+			pw = new PrintWriter(new File("tac.txt"));
+			while(!tac.isEmpty()){
+				pw.println(tac.pollFirst());
+			}
+			pw.flush();
+			pw.close();
+		}
+		catch (FileNotFoundException e) {
+				e.printStackTrace();
+		}
+	}
+:};
+/* Terminals (tokens returned by the scanner). */
+terminal STR, LS, RS, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, ID, NUM, DOT, LB, RB, COL, COMMA, IN, IF, ELSE, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE;
+
+
+/* Non-terminals */
+nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test, list_item, stmt_lhs, string, while_stmt, try_stmt, list;
+nonterminal String arith_expr;
+
+/* Precedences */
+precedence left LOGICAL_OP, LS, LB, RB;
+precedence left ARTH_OP;
+
+
+/* Grammar */
+program ::= stmts:s
+				{:
+					printTAC();
+					RESULT = s;:};
+
+suite ::= INDENT stmts:s DEDENT
+					{:RESULT = s;:};
+
+stmts ::= stmts:s1 stmt:s2
+					{:RESULT = s1 && s2;:}
+					| {:RESULT = true;:};
+
+stmt ::= assgn_stmt:s
+				{:RESULT = s;:}
+				| for_stmt:s
+				{:RESULT = s;:};
+
+
+/* Assignment Statement */
+assgn_stmt ::= ID:i ASSIGN_OP arith_expr:v
+			  			{:tac.offer(nextLine() + ":\t" + (String) i + " = " + v);
+								RESULT = v != null;:}
+			  			| error
+			  			{:RESULT = false;:};
+
+/* Arithmetic Expression */
+arith_expr ::= ID:i1 ARTH_OP:op ID:i2
+							{:
+								String v = nextVar();
+								tac.offer(nextLine() + ":\t" + v + " = " + (String) i1  + " " + (String) op + " " + (String) i2);
+								RESULT = v;
+							:}
+							| error
+				  		{:RESULT = null;:};
+
+/* For Loop */
+for_stmt ::= FOR ID:x IN ID:i LB NUM:n1 COMMA NUM:n2 RB COL suite:s
+{:
+	String initLine = nextLine();
+	String t = nextVar();
+	tac.offerFirst(initLine + ":\t" + ((String) x) + " = " + t);
+	tac.offerFirst(nextLine() + ":\t"  + t + " = " + (String) n1);
+	tac.offer(nextLine() + ":\t" + t + " = " + t + " + 1");
+	tac.offer(nextLine() + ":\t" + (String) x + " = " + t);
+	String check = nextVar();
+	tac.offer(nextLine() + ":\t" + check + " = " + t + " < " + ((String) n2));
+	tac.offer(nextLine() + ":\t" + "if " + check + " goto " + initLine);
+	RESULT = ((String) i).equals("range") && s;
+:};

@@ -3,22 +3,22 @@ import java.io.*;
 import java.util.*;
 
 action code {:
-	static LinkedList<String> tac = new LinkedList<String>();
+	static LinkedList<Instr> tac = new LinkedList<Instr>();
 	static int varCount = 0;
 	static int lineCount = 0;
 	static String nextVar(){
 		return "t" + varCount++;
-	}
-	static String nextLine(){
-		return "L" + lineCount++;
 	}
 	static void printTAC(){
 		try {
 			PrintWriter pw;
 			pw = new PrintWriter(new File("tac.txt"));
 			while(!tac.isEmpty()){
-				pw.println(tac.pollFirst());
+				Instr i = tac.pollFirst();
+				i.line = lineCount++;
+				pw.println(i.toString());
 			}
+			pw.println("L" + lineCount++);
 			pw.flush();
 			pw.close();
 		}
@@ -26,14 +26,45 @@ action code {:
 				e.printStackTrace();
 		}
 	}
+	static class Instr{
+		boolean check;
+		String arg1;
+		String arg2;
+		String arg3;
+		String op;
+		int line;
+		public Instr(boolean check, String arg1, String arg2, String arg3, String op){
+			this.check = check;
+			this.arg1 = arg1;
+			this.arg2 = arg2;
+			this.arg3 = arg3;
+			this.op = op;
+		}
+		public String toString(){
+			StringBuilder sb = new StringBuilder();
+			sb.append("L" + line + ":\t");
+			if(check){
+				if(arg1 != null)
+					sb.append("if " + arg1 + " ");
+				sb.append("goto L" + (line + Integer.parseInt(arg2)));
+			}
+			else{
+				sb.append(arg1 + " = " + arg2 + " ");
+				if(arg3 != null)
+					sb.append(op + " " + arg3);
+			}
+			return sb.toString();
+		}
+	}
 :};
 /* Terminals (tokens returned by the scanner). */
-terminal STR, LS, RS, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, ID, NUM, DOT, LB, RB, COL, COMMA, IN, IF, ELSE, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE;
+terminal STR, LS, RS, INDENT, DEDENT, BOOL, ARTH_OP, COMP_OP, LOGICAL_OP, ASSIGN_OP, ID, NUM, DOT, LB, RB, COL, COMMA, IN, IF, ELSE, FOR, WHILE, FROM, IMPORT, DEF, TRY, EXCEPT, CONTINUE, RANGE;
 
 
 /* Non-terminals */
-nonterminal	Boolean		program, suite, stmts, stmt, assgn_stmt, import_stmt, import_name, import_from, dotted_name, bool_expr, for_stmt, val, func_call, func_def, params, args, if_stmt, single_if_stmt, test, list_item, stmt_lhs, string, while_stmt, try_stmt, list;
+nonterminal	Boolean		program;
 nonterminal String arith_expr;
+nonterminal Integer suite, stmts, stmt, for_stmt, assgn_stmt;
 
 /* Precedences */
 precedence left LOGICAL_OP, LS, LB, RB;
@@ -44,14 +75,14 @@ precedence left ARTH_OP;
 program ::= stmts:s
 				{:
 					printTAC();
-					RESULT = s;:};
+					RESULT = true;:};
 
 suite ::= INDENT stmts:s DEDENT
 					{:RESULT = s;:};
 
 stmts ::= stmts:s1 stmt:s2
-					{:RESULT = s1 && s2;:}
-					| {:RESULT = true;:};
+					{: RESULT = s1 + s2;:}
+					| {:RESULT = 0;:};
 
 stmt ::= assgn_stmt:s
 				{:RESULT = s;:}
@@ -61,32 +92,28 @@ stmt ::= assgn_stmt:s
 
 /* Assignment Statement */
 assgn_stmt ::= ID:i ASSIGN_OP arith_expr:v
-			  			{:tac.offer(nextLine() + ":\t" + (String) i + " = " + v);
-								RESULT = v != null;:}
-			  			| error
-			  			{:RESULT = false;:};
+			  			{:tac.offer(new Instr(false, (String)i, v, null, null));
+								RESULT = 2;:};
 
 /* Arithmetic Expression */
 arith_expr ::= ID:i1 ARTH_OP:op ID:i2
 							{:
 								String v = nextVar();
-								tac.offer(nextLine() + ":\t" + v + " = " + (String) i1  + " " + (String) op + " " + (String) i2);
+								tac.offer(new Instr(false, v, (String) i1, (String) i2, (String) op));
 								RESULT = v;
-							:}
-							| error
-				  		{:RESULT = null;:};
+							:};
 
 /* For Loop */
-for_stmt ::= FOR ID:x IN ID:i LB NUM:n1 COMMA NUM:n2 RB COL suite:s
+for_stmt ::= FOR ID:x IN RANGE LB NUM:n1 COMMA NUM:n2 RB COL suite:s
 {:
-	String initLine = nextLine();
-	String t = nextVar();
-	tac.offerFirst(initLine + ":\t" + ((String) x) + " = " + t);
-	tac.offerFirst(nextLine() + ":\t"  + t + " = " + (String) n1);
-	tac.offer(nextLine() + ":\t" + t + " = " + t + " + 1");
-	tac.offer(nextLine() + ":\t" + (String) x + " = " + t);
 	String check = nextVar();
-	tac.offer(nextLine() + ":\t" + check + " = " + t + " < " + ((String) n2));
-	tac.offer(nextLine() + ":\t" + "if " + check + " goto " + initLine);
-	RESULT = ((String) i).equals("range") && s;
+	String i = (String) x;
+	tac.offerFirst(new Instr(true, check, (s + 4) + "", null, null));
+	tac.offerFirst(new Instr(false, check, i, (String) n2, ">="));
+	tac.offerFirst(new Instr(false, i, (String) n1, null, null));
+	String t = nextVar();
+	tac.offer(new Instr(false, t, i, "1", "+"));
+	tac.offer(new Instr(false, i, t, null, null));
+	tac.offer(new Instr(true, null, -(4 + s) + "", null, null));
+	RESULT = s + 6;
 :};

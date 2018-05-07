@@ -1,14 +1,15 @@
-L9:	t3 = 0
-L8:	x = t3
-L3:	t1 = 0
-L2:	y = t1
-L0:	t0 = x * y
-L1:	z = t0
-L4:	t1 = t1 + 1
-L5:	y = t1
-L6:	t2 = t1 < 4
-L7:	if t2 goto L2
-L10:	t3 = t3 + 1
-L11:	x = t3
-L12:	t4 = t3 < 3
-L13:	if t4 goto L8
+L0:	x = 0 
+L1:	t3 = x >= 3
+L2:	if t3 goto L14
+L3:	y = 0 
+L4:	t1 = y >= 4
+L5:	if t1 goto L11
+L6:	t0 = x * y
+L7:	z = t0 
+L8:	t2 = y + 1
+L9:	y = t2 
+L10:	goto L4
+L11:	t4 = x + 1
+L12:	x = t4 
+L13:	goto L1
+L14
